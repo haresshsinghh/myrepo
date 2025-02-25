@@ -1,1 +1,0 @@
-Fixed bug in search function by optimizing query
