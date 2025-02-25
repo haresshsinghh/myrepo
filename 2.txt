@@ -1,1 +1,1 @@
-Fixed search bug in the feature
+Fixed bug in search function by optimizing query
