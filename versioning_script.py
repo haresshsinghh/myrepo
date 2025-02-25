@@ -26,8 +26,9 @@ def calculate_new_version(current_version, commit_type):
     
     return f"{major}.{minor}.{patch}"
 
-# Function to parse commit type
+# Function to parse commit type from commit message
 def get_commit_type(commit_message):
+    print(f"Processing commit: {commit_message}")  # Debugging print statement
     if "BREAKING CHANGE" in commit_message or "feat!" in commit_message:
         return "major"  # Major version increment for breaking changes
     elif "feat:" in commit_message:
@@ -41,6 +42,7 @@ def get_commit_type(commit_message):
 def update_version_file(new_version):
     with open('version.txt', 'w') as version_file:
         version_file.write(new_version)
+    print(f"Updated version to: {new_version}")  # Debugging print statement
 
 # Initialize Git Repo
 repo = git.Repo('/home/haressh/ver/myrepo')  # Yahan apni repo ka path dena hoga
