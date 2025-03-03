@@ -15,6 +15,7 @@ def calculate_version_for_fix_feature_major(commit_history):
     fix_commits = 0
     feature_commits = 0
     major_change_commits = 0
+    feature_incremented = False  # To ensure minor increments only once
 
     # Iterate through commit history and classify commits
     for commit in commit_history:
@@ -31,9 +32,10 @@ def calculate_version_for_fix_feature_major(commit_history):
     # Update patch version based on fix commits
     patch += fix_commits
 
-    # Update minor version based on feature commits
-    if feature_commits > 0:
-        minor += 1  # Ensure minor increments with feature commits only, once
+    # Update minor version based on feature commits (only increment minor once)
+    if feature_commits > 0 and not feature_incremented:
+        minor += 1  # Increment minor version only once
+        feature_incremented = True
 
     # Update major version if there are major breaking change commits
     major += major_change_commits
