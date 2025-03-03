@@ -27,14 +27,15 @@ def calculate_version_for_fix_feature_major(commit_history):
         elif 'major' in commit.lower() or 'breaking' in commit.lower():  # Identifying major breaking change commits
             major_change_commits += 1
 
-    print(f"Fix commits: {fix_commits}, Feature commits: {feature_commits}, Major commits: {major_change_commits}")  # Debugging line
+    # Debugging the commit counts
+    print(f"Fix commits: {fix_commits}, Feature commits: {feature_commits}, Major commits: {major_change_commits}")
 
     # Update patch version based on fix commits
     patch += fix_commits
 
     # Update minor version based on feature commits (only increment minor once)
     if feature_commits > 0 and not feature_incremented:
-        minor += 1  # Increment minor version only once
+        minor += 1  # Increment minor version only once after the first feature commit
         feature_incremented = True
 
     # Update major version if there are major breaking change commits
@@ -66,4 +67,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
