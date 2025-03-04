@@ -11,7 +11,7 @@ def get_current_branch():
     return result.stdout.decode('utf-8').strip()
 
 def calculate_version_for_fix_and_feature(commit_history):
-    major, minor, patch = 1, 0, 0  # Starting version: 1.0.0 for develop branch
+    major, minor, patch = 1, 9, 5  # Starting version: 1.9.5 for develop branch
     fix_commits = 0
     feature_commits = 0
     major_change_commits = 0
@@ -25,16 +25,17 @@ def calculate_version_for_fix_and_feature(commit_history):
         elif 'breaking' in commit.lower() or 'major' in commit.lower():  # Identifying major breaking change commits
             major_change_commits += 1
     
-    # Update version based on commits
+    # Handle major breaking change commits
     if major_change_commits > 0:
         major += major_change_commits  # Major version increases on breaking changes
         minor = 0  # Reset minor version after a major change
         patch = 0  # Reset patch version after a major change
     else:
-        # Increment minor version for each feature commit
-        minor += feature_commits
-        # Reset patch version when a feature commit happens
-        patch = 0
+        # Increment minor version for each feature commit and reset patch version
+        if feature_commits > 0:
+            minor += feature_commits
+            patch = 0  # Reset patch version after a feature commit
+        
         # Increment patch version for each fix commit
         patch += fix_commits
 
