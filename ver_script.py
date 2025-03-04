@@ -21,7 +21,7 @@ def get_commit_count(branch_name):
         sys.exit(1)
 
 # Function to generate the version string based on the commit count
-def generate_version(commit_count, branch_name, commit_type):
+def generate_version(commit_count, branch_name, commit_type, last_feat_commit=None):
     major = 1
     minor = 0
     patch = commit_count  # Increment patch version with each commit
@@ -31,8 +31,12 @@ def generate_version(commit_count, branch_name, commit_type):
         minor += 1
         patch = 0
     elif commit_type == "fix":
-        # Increment the patch version for fix commits
-        patch = commit_count
+        # Increment the patch version for fix commits after a feat commit
+        if last_feat_commit is not None:
+            # Get the commit count from the last feat commit
+            patch = commit_count - last_feat_commit  # Count fix commits after feat commit
+        else:
+            patch = commit_count
 
     new_version = f"{major}.{minor}.{patch}-{branch_name}"
     return new_version
@@ -44,6 +48,17 @@ def get_commit_type(commit_message):
     elif "fix:" in commit_message:
         return "fix"
     return None
+
+# Function to get the last feat commit count
+def get_last_feat_commit():
+    try:
+        # Get the commit hash for the last feat commit
+        feat_commit = subprocess.check_output(['git', 'log', '--grep', 'feat:', '--oneline', '-1']).strip().decode()
+        # Get the number of commits after that feat commit
+        last_feat_commit_count = subprocess.check_output(['git', 'rev-list', '--count', feat_commit.split()[0]]).strip().decode()
+        return int(last_feat_commit_count)
+    except subprocess.CalledProcessError:
+        return None
 
 # Check the current branch
 current_branch = get_current_branch()
@@ -60,14 +75,17 @@ commit_message = subprocess.check_output(['git', 'log', '-1', '--pretty=%B']).st
 commit_type = get_commit_type(commit_message)
 
 if commit_type is None:
-    print("Error: Invalid commit type. Please use 'fix:' or 'feat:' in the commit message.")
+    print("Error: Invalid commit type. Please use 'feat:' or 'fix:' in commit message.")
     sys.exit(1)
 
 # Get the number of commits on the current branch
 commit_count = get_commit_count(current_branch)
 
-# Generate the new version based on the commit count and commit type
-new_version = generate_version(commit_count, current_branch, commit_type)
+# Get the last feat commit (if available)
+last_feat_commit = get_last_feat_commit()
+
+# Generate the new version based on the commit count, commit type, and last feat commit
+new_version = generate_version(commit_count, current_branch, commit_type, last_feat_commit)
 
 # Display the version that will be used
 print(f"Version generated for commit: {new_version}")
