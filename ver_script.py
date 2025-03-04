@@ -49,16 +49,15 @@ def get_commit_type(commit_message):
         return "fix"
     return None
 
-# Function to get the last feat commit count
+# Function to get the last feat commit hash and count
 def get_last_feat_commit():
     try:
-        # Get the commit hash for the last feat commit
-        feat_commit = subprocess.check_output(['git', 'log', '--grep', 'feat:', '--oneline', '-1']).strip().decode()
-        # Get the number of commits after that feat commit
-        last_feat_commit_count = subprocess.check_output(['git', 'rev-list', '--count', feat_commit.split()[0]]).strip().decode()
-        return int(last_feat_commit_count)
+        # Get the commit hash and count for the last feat commit
+        feat_commit = subprocess.check_output(['git', 'log', '--grep="feat:"', '--max-count=1', '--format=%H']).strip().decode()
+        commit_count = subprocess.check_output(['git', 'rev-list', '--count', feat_commit]).strip().decode()
+        return int(commit_count)
     except subprocess.CalledProcessError:
-        return None
+        return None  # If no feat commit, return None
 
 # Check the current branch
 current_branch = get_current_branch()
@@ -74,21 +73,15 @@ commit_message = subprocess.check_output(['git', 'log', '-1', '--pretty=%B']).st
 # Get the commit type ('fix' or 'feat')
 commit_type = get_commit_type(commit_message)
 
-if commit_type is None:
-    print("Error: Invalid commit type. Please use 'feat:' or 'fix:' in commit message.")
-    sys.exit(1)
-
-# Get the number of commits on the current branch
+# Get the commit count
 commit_count = get_commit_count(current_branch)
 
-# Get the last feat commit (if available)
+# Get the last feat commit's count (if any)
 last_feat_commit = get_last_feat_commit()
 
-# Generate the new version based on the commit count, commit type, and last feat commit
+# Generate the new version based on the commit count and branch name
 new_version = generate_version(commit_count, current_branch, commit_type, last_feat_commit)
 
 # Display the version that will be used
-print(f"Version generated for commit: {new_version}")
-
-# End of script
+print(f"Current Version Generated on Commit basis: {new_version}")
 
