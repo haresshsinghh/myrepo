@@ -1,64 +1,50 @@
 import subprocess
+import sys
 
-def get_commit_history():
-    # Git log command to fetch commit history for the current branch (develop)
-    result = subprocess.run(['git', 'log', '--oneline'], stdout=subprocess.PIPE)
-    return result.stdout.decode('utf-8').split('\n')
-
+# Function to get the current branch name
 def get_current_branch():
-    # Git command to get the current branch
-    result = subprocess.run(['git', 'rev-parse', '--abbrev-ref', 'HEAD'], stdout=subprocess.PIPE)
-    return result.stdout.decode('utf-8').strip()
+    try:
+        branch = subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD']).strip().decode()
+        return branch
+    except subprocess.CalledProcessError:
+        print("Error: Not a git repository.")
+        sys.exit(1)
 
-def calculate_version_for_fix_and_feature(commit_history):
-    major, minor, patch = 1, 9, 5  # Starting version: 1.9.5 for develop branch
-    fix_commits = 0
-    feature_commits = 0
-    major_change_commits = 0
-    
-    # Iterate through commit history and count fix, feature, and major change commits
-    for commit in commit_history:
-        if 'fix' in commit.lower():  # Identifying fix commits
-            fix_commits += 1
-        elif 'feature' in commit.lower() or 'feat' in commit.lower():  # Identifying feature commits
-            feature_commits += 1
-        elif 'breaking' in commit.lower() or 'major' in commit.lower():  # Identifying major breaking change commits
-            major_change_commits += 1
-    
-    # Handle major breaking change commits
-    if major_change_commits > 0:
-        major += major_change_commits  # Major version increases on breaking changes
-        minor = 0  # Reset minor version after a major change
-        patch = 0  # Reset patch version after a major change
-    else:
-        # Handle feature commits
-        if feature_commits > 0:
-            minor += feature_commits  # Increment minor version for feature commits
-            patch = 0  # Reset patch version after a feature commit
-        
-        # Increment patch version for each fix commit
-        patch += fix_commits
+# Function to get the number of commits on the current branch
+def get_commit_count(branch_name):
+    try:
+        # Count the number of commits in the current branch
+        commit_count = subprocess.check_output(['git', 'rev-list', '--count', branch_name]).strip().decode()
+        return int(commit_count)
+    except subprocess.CalledProcessError:
+        print("Error: Could not retrieve commit count.")
+        sys.exit(1)
 
-    # Format version for the develop branch (fix, feature, and major commits)
-    version = f"{major}.{minor}.{patch}-develop"
-    return version
+# Function to generate the version string based on the commit count
+def generate_version(commit_count, branch_name):
+    # Version starts from 1.0.0, and increment the patch version with each commit
+    major = 1
+    minor = 0
+    patch = commit_count  # Increment patch version with each commit
+    new_version = f"{major}.{minor}.{patch}-{branch_name}"
+    return new_version
 
-def main():
-    # Ensure the script runs only for the develop branch
-    current_branch = get_current_branch()
-    if current_branch != 'develop':
-        print("This script only runs on the develop branch!")
-        return
+# Check the current branch
+current_branch = get_current_branch()
 
-    # Get the commit history for the develop branch
-    commit_history = get_commit_history()
+# Only allow 'develop' or 'dev' branches to run the script
+if current_branch not in ['develop', 'dev']:
+    print(f"This script only runs on the 'develop' or 'dev' branch! Current branch: {current_branch}")
+    sys.exit(1)
 
-    # Calculate the new version based on fix, feature, and major commits
-    version = calculate_version_for_fix_and_feature(commit_history)
+# Get the number of commits on the current branch
+commit_count = get_commit_count(current_branch)
 
-    # Output the new version
-    print(f"New version for develop branch (fix, feature, and major commits): {version}")
+# Generate the new version based on the commit count and branch name
+new_version = generate_version(commit_count, current_branch)
 
-if __name__ == '__main__':
-    main()
+# Display the version that will be used
+print(f"Current version based on commits: {new_version}")
+
+# End of script
 
