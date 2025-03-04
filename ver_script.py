@@ -10,6 +10,15 @@ def get_current_branch():
         print("Error: Not a git repository.")
         sys.exit(1)
 
+# Function to get the latest commit message
+def get_latest_commit_message():
+    try:
+        commit_message = subprocess.check_output(['git', 'log', '-1', '--pretty=%B']).strip().decode()
+        return commit_message
+    except subprocess.CalledProcessError:
+        print("Error: Could not retrieve latest commit message.")
+        sys.exit(1)
+
 # Function to get the number of commits on the current branch
 def get_commit_count(branch_name):
     try:
@@ -17,8 +26,16 @@ def get_commit_count(branch_name):
         commit_count = subprocess.check_output(['git', 'rev-list', '--count', branch_name]).strip().decode()
         return int(commit_count)
     except subprocess.CalledProcessError:
-        print("Error: Could not retrieve commit count.")
+        print("Error: Could not retrieve commit count. Please make sure the repository is initialized correctly.")
         sys.exit(1)
+
+# Function to determine commit type based on commit message
+def get_commit_type(commit_message):
+    if "feat:" in commit_message:
+        return "feat"
+    elif "fix:" in commit_message:
+        return "fix"
+    return None
 
 # Function to generate the version string based on the commit count
 def generate_version(commit_count, branch_name, commit_type, last_feat_commit=None):
@@ -41,47 +58,26 @@ def generate_version(commit_count, branch_name, commit_type, last_feat_commit=No
     new_version = f"{major}.{minor}.{patch}-{branch_name}"
     return new_version
 
-# Function to get the commit type ('fix' or 'feat') from the commit message
-def get_commit_type(commit_message):
-    if "feat:" in commit_message:
-        return "feat"
-    elif "fix:" in commit_message:
-        return "fix"
-    return None
+# Main function to run the versioning process
+def main():
+    current_branch = get_current_branch()
+    commit_message = get_latest_commit_message()
 
-# Function to get the last feat commit hash and count
-def get_last_feat_commit():
-    try:
-        # Get the commit hash and count for the last feat commit
-        feat_commit = subprocess.check_output(['git', 'log', '--grep="feat:"', '--max-count=1', '--format=%H']).strip().decode()
-        commit_count = subprocess.check_output(['git', 'rev-list', '--count', feat_commit]).strip().decode()
-        return int(commit_count)
-    except subprocess.CalledProcessError:
-        return None  # If no feat commit, return None
+    # Determine the type of commit
+    commit_type = get_commit_type(commit_message)
 
-# Check the current branch
-current_branch = get_current_branch()
+    if not commit_type:
+        print(f"Skipping version update. No feat/fix commit detected in: {commit_message}")
+        return
 
-# Only allow 'develop' or 'dev' branches to run the script
-if current_branch not in ['develop', 'dev']:
-    print(f"This script only runs on the 'develop' or 'dev' branch! Current branch: {current_branch}")
-    sys.exit(1)
+    # Get the total number of commits in the current branch
+    commit_count = get_commit_count(current_branch)
 
-# Get the latest commit message to determine the type
-commit_message = subprocess.check_output(['git', 'log', '-1', '--pretty=%B']).strip().decode()
+    # Generate version
+    version = generate_version(commit_count, current_branch, commit_type)
+    print(f"Version generated for commit: {version}")
 
-# Get the commit type ('fix' or 'feat')
-commit_type = get_commit_type(commit_message)
-
-# Get the commit count
-commit_count = get_commit_count(current_branch)
-
-# Get the last feat commit's count (if any)
-last_feat_commit = get_last_feat_commit()
-
-# Generate the new version based on the commit count and branch name
-new_version = generate_version(commit_count, current_branch, commit_type, last_feat_commit)
-
-# Display the version that will be used
-print(f"Current Version Generated on Commit basis: {new_version}")
+# Run the script
+if __name__ == "__main__":
+    main()
 
