@@ -31,10 +31,12 @@ def calculate_version_for_fix_and_feature(commit_history):
         minor = 0  # Reset minor version after a major change
         patch = 0  # Reset patch version after a major change
     else:
-        # Increment patch version for each fix commit
-        patch += fix_commits
         # Increment minor version for each feature commit
         minor += feature_commits
+        # Reset patch version when a feature commit happens
+        patch = 0
+        # Increment patch version for each fix commit
+        patch += fix_commits
 
     # Format version for the develop branch (fix, feature, and major commits)
     version = f"{major}.{minor}.{patch}-develop"
@@ -58,3 +60,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
