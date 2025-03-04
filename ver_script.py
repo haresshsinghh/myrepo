@@ -31,9 +31,9 @@ def calculate_version_for_fix_and_feature(commit_history):
         minor = 0  # Reset minor version after a major change
         patch = 0  # Reset patch version after a major change
     else:
-        # Increment minor version for each feature commit and reset patch version
+        # Handle feature commits
         if feature_commits > 0:
-            minor += feature_commits
+            minor += feature_commits  # Increment minor version for feature commits
             patch = 0  # Reset patch version after a feature commit
         
         # Increment patch version for each fix commit
