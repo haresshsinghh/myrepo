@@ -10,42 +10,33 @@ def get_current_branch():
     result = subprocess.run(['git', 'rev-parse', '--abbrev-ref', 'HEAD'], stdout=subprocess.PIPE)
     return result.stdout.decode('utf-8').strip()
 
-def calculate_version_for_fix_feature_major(commit_history):
+def calculate_version_for_fix_and_feature(commit_history):
     major, minor, patch = 1, 0, 0  # Starting version: 1.0.0 for develop branch
     fix_commits = 0
     feature_commits = 0
     major_change_commits = 0
-    feature_incremented = False  # To ensure minor increments only once
-
-    # Iterate through commit history and classify commits
+    
+    # Iterate through commit history and count fix, feature, and major change commits
     for commit in commit_history:
-        print(f"Processing commit: {commit}")  # Debugging line
         if 'fix' in commit.lower():  # Identifying fix commits
             fix_commits += 1
         elif 'feature' in commit.lower() or 'feat' in commit.lower():  # Identifying feature commits
             feature_commits += 1
-        elif 'major' in commit.lower() or 'breaking' in commit.lower():  # Identifying major breaking change commits
+        elif 'breaking' in commit.lower() or 'major' in commit.lower():  # Identifying major breaking change commits
             major_change_commits += 1
-
-    # Debugging the commit counts
-    print(f"Fix commits: {fix_commits}, Feature commits: {feature_commits}, Major commits: {major_change_commits}")
-
-    # Update patch version based on fix commits
-    patch += fix_commits
-
-    # Update minor version based on feature commits (only increment minor once)
-    if feature_commits > 0 and not feature_incremented:
-        minor += 1  # Increment minor version only once after the first feature commit
-        feature_incremented = True
-
-    # Update major version if there are major breaking change commits
-    major += major_change_commits
-
-    # If major breaking change occurs, reset patch and minor
+    
+    # Update version based on commits
     if major_change_commits > 0:
-        minor = 0
-        patch = 0
+        major += major_change_commits  # Major version increases on breaking changes
+        minor = 0  # Reset minor version after a major change
+        patch = 0  # Reset patch version after a major change
+    else:
+        # Increment patch version for each fix commit
+        patch += fix_commits
+        # Increment minor version for each feature commit
+        minor += feature_commits
 
+    # Format version for the develop branch (fix, feature, and major commits)
     version = f"{major}.{minor}.{patch}-develop"
     return version
 
@@ -59,8 +50,8 @@ def main():
     # Get the commit history for the develop branch
     commit_history = get_commit_history()
 
-    # Calculate the new version based on fix, feature, and major breaking change commits
-    version = calculate_version_for_fix_feature_major(commit_history)
+    # Calculate the new version based on fix, feature, and major commits
+    version = calculate_version_for_fix_and_feature(commit_history)
 
     # Output the new version
     print(f"New version for develop branch (fix, feature, and major commits): {version}")
