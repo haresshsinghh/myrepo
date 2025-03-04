@@ -58,6 +58,19 @@ def generate_version(commit_count, branch_name, commit_type, last_feat_commit=No
     new_version = f"{major}.{minor}.{patch}-{branch_name}"
     return new_version
 
+# Function to track the last feat commit's index (commit number)
+def get_last_feat_commit():
+    try:
+        # Get the last feat commit hash and count
+        feat_commit = subprocess.check_output(['git', 'log', '--grep="feat:"', '--oneline']).decode().splitlines()
+        if feat_commit:
+            last_feat_commit_hash = feat_commit[0].split()[0]
+            last_feat_commit_count = subprocess.check_output(['git', 'rev-list', '--count', f'{last_feat_commit_hash}^..HEAD']).strip().decode()
+            return int(last_feat_commit_count)
+        return 0
+    except subprocess.CalledProcessError:
+        return 0  # If no feat commit, return 0
+
 # Main function to run the versioning process
 def main():
     current_branch = get_current_branch()
@@ -73,8 +86,11 @@ def main():
     # Get the total number of commits in the current branch
     commit_count = get_commit_count(current_branch)
 
+    # Get the number of commits since the last feat commit
+    last_feat_commit = get_last_feat_commit()
+
     # Generate version
-    version = generate_version(commit_count, current_branch, commit_type)
+    version = generate_version(commit_count, current_branch, commit_type, last_feat_commit)
     print(f"Version generated for commit: {version}")
 
 # Run the script
