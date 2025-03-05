@@ -24,8 +24,8 @@ for COMMIT in $COMMITS; do
         # Minor version bump for 'feat:' (new feature)
         MINOR=$((MINOR + 1))
         PATCH=0      # Patch reset
-    elif [[ $COMMIT == fix:* ]]; then
-        # Patch version bump for 'fix:' (bug fix)
+    elif [[ $COMMIT == fix:* || $COMMIT == perf:* || $COMMIT == refactor:* || $COMMIT == test:* ]]; then
+        # Patch version bump for 'fix:', 'perf:', 'refactor:', 'test:'
         PATCH=$((PATCH + 1))
     fi
 done
