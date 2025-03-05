@@ -8,6 +8,11 @@ BASE_PATCH=0
 # Step 2: Fetch commit messages in reverse (oldest to newest)
 COMMITS=$(git log --pretty=%s | tac)
 
+# Debug: Print all commit messages
+echo "Commit Messages:"
+echo "$COMMITS"
+echo ""
+
 # Initialize version
 MAJOR=$BASE_MAJOR
 MINOR=$BASE_MINOR
@@ -15,8 +20,15 @@ PATCH=$BASE_PATCH
 
 # Step 3: Analyze commit messages
 for COMMIT in $COMMITS; do
-    if [[ $COMMIT == feat\!* || $COMMIT == *"BREAKING CHANGE"* ]]; then
+    # Debug: print each commit being processed
+    echo "Processing commit: '$COMMIT'"
+
+    # Remove leading/trailing spaces (optional, but useful)
+    COMMIT=$(echo "$COMMIT" | xargs)
+
+    if [[ $COMMIT == feat\!* || "$COMMIT" =~ "BREAKING CHANGE" ]]; then
         # Major version bump for 'feat!' or 'BREAKING CHANGE'
+        echo "Major version bump detected!"
         MAJOR=$((MAJOR + 1))
         MINOR=0      # Minor reset
         PATCH=0      # Patch reset
