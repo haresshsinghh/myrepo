@@ -15,8 +15,8 @@ PATCH=$BASE_PATCH
 
 # Step 3: Analyze commit messages
 for COMMIT in $COMMITS; do
-    if [[ $COMMIT == feat\!* || $COMMIT == BREAKING\ CHANGE* ]]; then
-        # Major version bump for 'feat!' or 'BREAKING CHANGE'
+    # Major version bump for 'feat!' or 'BREAKING CHANGE'
+    if [[ $COMMIT == feat\!* || $COMMIT == *"BREAKING CHANGE"* ]]; then
         MAJOR=$((MAJOR + 1))
         MINOR=0      # Minor reset
         PATCH=0      # Patch reset
