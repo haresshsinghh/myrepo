@@ -18,8 +18,8 @@ MAJOR=$BASE_MAJOR
 MINOR=$BASE_MINOR
 PATCH=$BASE_PATCH
 
-# Step 3: Analyze commit messages
-for COMMIT in $COMMITS; do
+# Step 3: Analyze commit messages line-by-line
+while IFS= read -r COMMIT; do
     # Debug: print each commit being processed
     echo "Processing commit: '$COMMIT'"
 
@@ -40,11 +40,10 @@ for COMMIT in $COMMITS; do
         # Patch version bump for 'fix:', 'perf:', 'refactor:', 'test:'
         PATCH=$((PATCH + 1))
     fi
-done
+done <<< "$COMMITS"
 
 # Step 4: Construct new version
 NEW_VERSION="version-$MAJOR.$MINOR.$PATCH-dev"
 
 # Step 5: Print version to terminal only (NO FILE SAVING)
 echo "Updated Version: $NEW_VERSION"
-
