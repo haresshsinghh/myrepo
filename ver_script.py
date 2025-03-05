@@ -31,7 +31,7 @@ def get_commit_count(branch_name):
 
 # Function to determine commit type based on commit message
 def get_commit_type(commit_message):
-    if "feat:" in commit_message:
+    if "feat:" in commit_message or "feature:" in commit_message:
         return "feat"
     elif "fix:" in commit_message:
         return "fix"
