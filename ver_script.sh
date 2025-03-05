@@ -8,11 +8,6 @@ BASE_PATCH=0
 # Step 2: Fetch commit messages in reverse (oldest to newest)
 COMMITS=$(git log --pretty=%s | tac)
 
-# Debug: Print all commit messages
-echo "Commit Messages:"
-echo "$COMMITS"
-echo ""
-
 # Initialize version
 MAJOR=$BASE_MAJOR
 MINOR=$BASE_MINOR
@@ -20,15 +15,11 @@ PATCH=$BASE_PATCH
 
 # Step 3: Analyze commit messages line-by-line
 while IFS= read -r COMMIT; do
-    # Debug: print each commit being processed
-    echo "Processing commit: '$COMMIT'"
-
-    # Remove leading/trailing spaces (optional, but useful)
+    # Trim leading/trailing spaces (optional, but useful)
     COMMIT=$(echo "$COMMIT" | xargs)
 
     if [[ $COMMIT == feat\!* || "$COMMIT" =~ "BREAKING CHANGE" ]]; then
         # Major version bump for 'feat!' or 'BREAKING CHANGE'
-        echo "Major version bump detected!"
         MAJOR=$((MAJOR + 1))
         MINOR=0      # Minor reset
         PATCH=0      # Patch reset
@@ -47,3 +38,4 @@ NEW_VERSION="version-$MAJOR.$MINOR.$PATCH-dev"
 
 # Step 5: Print version to terminal only (NO FILE SAVING)
 echo "Updated Version: $NEW_VERSION"
+
