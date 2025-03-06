@@ -9,8 +9,11 @@ error_exit() {
     exit 1  # Script ko exit karwana
 }
 
-# Step 1: Get the current version from dev branch
-CURRENT_VERSION=$(git tag --list "v20.0.1-dev" | tail -n 1) || error_exit "Current version ko fetch karne mein error aayi."
+# Step 1: Checkout to the 'dev' branch to get the latest version
+git checkout dev || error_exit "dev branch par switch karne mein error aayi."
+
+# Get the current version from dev branch
+CURRENT_VERSION=$(git tag --list "v*-dev" | tail -n 1) || error_exit "Current version ko fetch karne mein error aayi."
 
 # Extracting the version number
 BASE_MAJOR=20
@@ -59,7 +62,15 @@ done <<< "$COMMITS"
 # Step 4: Naya version construct karna
 NEW_VERSION="v$MAJOR.$MINOR.$PATCH-dev"
 
-# Step 5: Version ko terminal par print karna (file mein save nahi karenge)
+# Step 5: Version ko file mein save karna
+version_file="version.txt"
+echo $NEW_VERSION > $version_file
+
+# Step 6: Commit the updated version
+git add $version_file
+git commit -m "chore: Version updated to $NEW_VERSION"
+
+# Step 7: Print the updated version (optional)
 echo "Updated Version: $NEW_VERSION"
 
 # Optional: Agar script ka koi part fail ho jaata hai toh error print karna
